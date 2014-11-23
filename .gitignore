@@ -1,0 +1,8 @@
+ConsoleCalculator/bin/
+ConsoleCalculator/obj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+TestCalculator/bin/
+TestCalculator/obj

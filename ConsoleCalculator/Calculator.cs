@@ -13,10 +13,9 @@ namespace ConsoleCalculator
 			Number,
 			UnaryOperator,
 			BinaryOperator,
-			End
+			SameState
 		}
 
-		private State currentState = State.Initial;
 		private string currentValue = "";
 
 		private readonly Stack<Operator> operators = new Stack<Operator>();
@@ -57,7 +56,7 @@ namespace ConsoleCalculator
 			}
 		}
 
-		private void ChangeState(State newState)
+		private void CompleteState(State currentState)
 		{
 			switch (currentState)
 			{
@@ -73,7 +72,6 @@ namespace ConsoleCalculator
 			}
 
 			currentValue = "";
-			currentState = newState;
 		}
 
 		private void SaveNumber()
@@ -82,7 +80,7 @@ namespace ConsoleCalculator
 			numbers.Push(number);
 		}
 
-		private State ProcessState(char c)
+		private State ProcessState(State currentState, char c)
 		{
 			switch (currentState)
 			{
@@ -102,7 +100,7 @@ namespace ConsoleCalculator
 			if (c == '(')
 			{
 				priorityDisp += priorityStep;
-				return State.Initial;
+				return State.SameState;
 			}
 
 			if (Char.IsDigit(c))
@@ -116,7 +114,7 @@ namespace ConsoleCalculator
 			if (Char.IsDigit(c) || (c == '.' && !currentValue.Contains(".")))
 			{
 				currentValue += c;
-				return State.Number;
+				return State.SameState;
 			}
 
 			if (c == ')')
@@ -125,7 +123,7 @@ namespace ConsoleCalculator
 					throw new Exception("Unexpected ')'");
 
 				priorityDisp -= priorityStep;
-				return State.Number;
+				return State.SameState;
 			}
 
 			return State.BinaryOperator;
@@ -140,14 +138,13 @@ namespace ConsoleCalculator
 				return State.Initial;
 
 			currentValue += c;
-			return currentState;
-
+			return State.SameState;
 		}
 
 		private double GetAnswer(string input)
 		{
 			currentValue = "";
-			currentState = State.Initial;
+			var currentState = State.Initial;
 			priorityDisp = 0;
 
 			foreach (var c in input)
@@ -155,15 +152,17 @@ namespace ConsoleCalculator
 				if (c == ' ')
 					continue;
 
-				var newState = ProcessState(c);
-				if (newState == currentState)
+				var newState = ProcessState(currentState, c);
+				if (newState == State.SameState)
 					continue;
 
-				ChangeState(newState);
-				ProcessState(c);
+				CompleteState(currentState);
+				currentState = newState;
+
+				ProcessState(currentState, c);
 			}
 
-			ChangeState(State.End);
+			CompleteState(currentState);
 
 			if (priorityDisp != 0)
 				throw new Exception("Lacking right bracket");

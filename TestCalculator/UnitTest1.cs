@@ -25,6 +25,9 @@ namespace TestCalculator
 		[TestCase("1+2*(3+5)", 1 + 2 * (3 + 5))]
 		[TestCase("1+2*(3*6+(-5))", 1 + 2 * (3 * 6 + (-5)))]
 		[TestCase("1+(2*3)+5", 1 + (2 * 3) + 5)]
+		[TestCase("1+(4/2*3)+5-5", 1 + (4 / 2 * 3) + 5 - 5)]
+		[TestCase("-2^4", -16)]
+		[TestCase("--2^4", 16)]
 		public void TestParsing(string input, double result)
 		{
 			double calculated = Calculator.Calculate(input);

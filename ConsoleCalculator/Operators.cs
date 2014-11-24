@@ -10,13 +10,22 @@ namespace ConsoleCalculator
 
 		private static readonly Dictionary<string, Operator> binaryOperators = new Dictionary<string, Operator>
 		{
-			{"+", new Operator(Plus, 1) },
+			{"+", new Operator(Sum, 1) },
+			{"-", new Operator(Difference, 1) },
 			{"*", new Operator(Mult, 2) },
+			{"/", new Operator(Division, 2) },
+			{"^", new Operator(Power, 3) },
 		};
+
+		private static double Power(double arg1, double arg2)
+		{
+			return Math.Pow(arg1, arg2);
+		}
 
 		private static readonly Dictionary<string, Operator> unaryOperators = new Dictionary<string, Operator>
 		{
-			{"-", new Operator(Invert, 1000) },
+			{"--", new Operator(Invert, 1000) },
+			{"-", new Operator(Invert, 1) },
 		};
 
 		static Operators()
@@ -34,9 +43,19 @@ namespace ConsoleCalculator
 			return arg1 * arg2;
 		}
 
-		private static double Plus(double arg1, double arg2)
+		private static double Sum(double arg1, double arg2)
 		{
 			return arg1 + arg2;
+		}
+
+		private static double Difference(double arg1, double arg2)
+		{
+			return arg1 - arg2;
+		}
+
+		private static double Division(double arg1, double arg2)
+		{
+			return arg1 / arg2;
 		}
 
 		public static Operator GetBinary(string key)

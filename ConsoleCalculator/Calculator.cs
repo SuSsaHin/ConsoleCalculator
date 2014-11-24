@@ -140,7 +140,7 @@ namespace ConsoleCalculator
 				return State.Initial;
 
 			currentValue += c;
-			return State.BinaryOperator;
+			return currentState;
 
 		}
 

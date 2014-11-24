@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ConsoleCalculator
 {
@@ -6,9 +8,16 @@ namespace ConsoleCalculator
 	{
 		private static readonly Dictionary<string, Operator> operators = new Dictionary<string, Operator>
 		{
-			{"+", new Operator{ Function = Plus, Priority = 1} },
-			{"*", new Operator{ Function = Mult, Priority = 2} },
+			{"+", new Operator(Plus, 1) },
+			{"*", new Operator(Mult, 2) },
 		};
+
+		public static uint MaxPriority { get; private set; }
+
+		static Operators()
+		{
+			MaxPriority = operators.Max(oper => oper.Value.Priority) + 1;
+		}
 
 		private static double Mult(double arg1, double arg2)
 		{
@@ -24,7 +33,10 @@ namespace ConsoleCalculator
 		{
 			Operator oper;
 			operators.TryGetValue(key, out oper);
-			return oper;
+			if(oper == null)
+				throw new Exception("Unknown operator: " + key);
+
+			return new Operator(oper);
 		}
 	}
 }

@@ -22,10 +22,12 @@ namespace TestCalculator
 		[TestCase("1+2+3+5", 1 + 2 + 3 + 5)]
 		[TestCase("1+2*3+5", 1 + 2 * 3 + 5)]
 		[TestCase("1+2*(3+5)", 1 + 2 * (3 + 5))]
-
+		[TestCase("1+2*(3*6+(5))", 1 + 2 * (3 * 6 + (5)))]
+		[TestCase("1+(2*3)+5", 1 + (2 * 3) + 5)]
 		public void TestParsing(string input, double result)
 		{
-			Assert.That(Math.Abs(Calculator.Calculate(input) - result) < 0.0001);
+			double calculated = Calculator.Calculate(input);
+			Assert.That(Math.Abs(calculated - result) < 0.0001);
 		}
 	}
 }

@@ -21,6 +21,9 @@ namespace ConsoleCalculator
 		private readonly Stack<Operator> operators = new Stack<Operator>();
 		private readonly Stack<double> numbers = new Stack<double>();
 
+		private uint priorityDisp;
+		private readonly uint priorityStep = Operators.MaxPriority;
+
 		private void ExecuteAllOperators()
 		{
 			if (numbers.Count != (operators.Count + 1))
@@ -54,9 +57,8 @@ namespace ConsoleCalculator
 		private void ExecuteOperators()
 		{
 			var currentOperator = Operators.Get(currentValue);
-			if(currentOperator == null)
-				throw new Exception("Unknown operator: " + currentValue);
-			
+			currentOperator.Priority += priorityDisp;
+
 			while (operators.Count != 0)
 			{
 				var frontOperator = operators.Peek();
@@ -94,6 +96,12 @@ namespace ConsoleCalculator
 
 		private State ProcessInitial(char c)
 		{
+			if (c == '(')
+			{
+				priorityDisp += priorityStep;
+				return State.Initial;
+			}
+
 			if (Char.IsDigit(c))
 				return State.Number;
 			
@@ -108,6 +116,15 @@ namespace ConsoleCalculator
 				return State.Number;
 			}
 
+			if (c == ')')
+			{
+				if(priorityDisp < priorityStep)
+					throw new Exception("Unexpected ')'");
+
+				priorityDisp -= priorityStep;
+				return State.Number;
+			}
+
 			return State.Operator;
 		}
 
@@ -115,6 +132,9 @@ namespace ConsoleCalculator
 		{
 			if (Char.IsDigit(c))
 				return State.Number;
+
+			if (c == '(')
+				return State.Initial;
 
 			currentValue += c;
 			return State.Operator;
@@ -125,6 +145,7 @@ namespace ConsoleCalculator
 		{
 			currentValue = "";
 			currentState = State.Initial;
+			priorityDisp = 0;
 
 			foreach (var c in input)
 			{

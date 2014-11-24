@@ -15,34 +15,13 @@ namespace ConsoleCalculator
 			End
 		}
 
-		private static State currentState;
-		private static string currentValue;
+		private State currentState = State.Initial;
+		private string currentValue = "";
 
-		private static Stack<Operator> operators = new Stack<Operator>();
-		private static Stack<double> numbers = new Stack<double>(); 
+		private readonly Stack<Operator> operators = new Stack<Operator>();
+		private readonly Stack<double> numbers = new Stack<double>();
 
-		public static double Calculate(string input)
-		{
-			currentValue = "";
-			currentState = State.Initial;
-
-			foreach (var c in input)
-			{
-				var newState = ProcessState(c);
-				if (newState == currentState)
-					continue;
-
-				ChangeState(newState);
-				ProcessState(c);
-			}
-			
-			ChangeState(State.End);
-			ExecuteAllOperators();
-
-			return numbers.Single();
-		}
-
-		private static void ExecuteAllOperators()
+		private void ExecuteAllOperators()
 		{
 			if (numbers.Count != (operators.Count + 1))
 				throw new Exception("Bad input expression");
@@ -57,7 +36,7 @@ namespace ConsoleCalculator
 			}
 		}
 
-		private static void ChangeState(State newState)
+		private void ChangeState(State newState)
 		{
 			if (currentState == State.Operator)
 			{
@@ -72,11 +51,11 @@ namespace ConsoleCalculator
 			currentState = newState;
 		}
 
-		private static void ExecuteOperators()
+		private void ExecuteOperators()
 		{
 			var currentOperator = Operators.Get(currentValue);
 			if(currentOperator == null)
-				throw new Exception("Unknown operator");
+				throw new Exception("Unknown operator: " + currentValue);
 			
 			while (operators.Count != 0)
 			{
@@ -93,13 +72,13 @@ namespace ConsoleCalculator
 			operators.Push(currentOperator);
 		}
 
-		private static void SaveNumber()
+		private void SaveNumber()
 		{
 			var number = Double.Parse(currentValue, new CultureInfo("en-US"));
 			numbers.Push(number);
 		}
 
-		private static State ProcessState(char c)
+		private State ProcessState(char c)
 		{
 			switch (currentState)
 			{
@@ -113,7 +92,7 @@ namespace ConsoleCalculator
 			throw new Exception("Unexpected state");
 		}
 
-		private static State ProcessInitial(char c)
+		private State ProcessInitial(char c)
 		{
 			if (Char.IsDigit(c))
 				return State.Number;
@@ -121,7 +100,7 @@ namespace ConsoleCalculator
 			throw new Exception("Unexpected char in input: " + c);
 		}
 
-		private static State ProcessNumber(char c)
+		private State ProcessNumber(char c)
 		{
 			if (Char.IsDigit(c) || (c == '.' && !currentValue.Contains(".")))
 			{
@@ -132,7 +111,7 @@ namespace ConsoleCalculator
 			return State.Operator;
 		}
 
-		private static State ProcessOperator(char c)
+		private State ProcessOperator(char c)
 		{
 			if (Char.IsDigit(c))
 				return State.Number;
@@ -140,6 +119,36 @@ namespace ConsoleCalculator
 			currentValue += c;
 			return State.Operator;
 
+		}
+
+		private double GetAnswer(string input)
+		{
+			currentValue = "";
+			currentState = State.Initial;
+
+			foreach (var c in input)
+			{
+				if (c == ' ')
+					continue;
+
+				var newState = ProcessState(c);
+				if (newState == currentState)
+					continue;
+
+				ChangeState(newState);
+				ProcessState(c);
+			}
+
+			ChangeState(State.End);
+			ExecuteAllOperators();
+
+			return numbers.Single();
+		}
+
+		public static double Calculate(string input)
+		{
+			var calculator = new Calculator();
+			return calculator.GetAnswer(input);
 		}
 	}
 }

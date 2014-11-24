@@ -7,7 +7,13 @@ namespace ConsoleCalculator
 		private static readonly Dictionary<string, Operator> operators = new Dictionary<string, Operator>
 		{
 			{"+", new Operator{ Function = Plus, Priority = 1} },
+			{"*", new Operator{ Function = Mult, Priority = 2} },
 		};
+
+		private static double Mult(double arg1, double arg2)
+		{
+			return arg1 * arg2;
+		}
 
 		private static double Plus(double arg1, double arg2)
 		{

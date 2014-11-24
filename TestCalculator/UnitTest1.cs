@@ -20,6 +20,9 @@ namespace TestCalculator
 		[TestCase("10", 10)]
 		[TestCase("1.0", 1)]
 		[TestCase("1+2+3+5", 1 + 2 + 3 + 5)]
+		[TestCase("1+2*3+5", 1 + 2 * 3 + 5)]
+		[TestCase("1+2*(3+5)", 1 + 2 * (3 + 5))]
+
 		public void TestParsing(string input, double result)
 		{
 			Assert.That(Math.Abs(Calculator.Calculate(input) - result) < 0.0001);

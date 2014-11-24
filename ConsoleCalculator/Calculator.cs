@@ -9,77 +9,107 @@ namespace ConsoleCalculator
 		{
 			Initial,
 			Integer,
-			Decimal
+			Decimal,
+			Operator
 		}
 
 		private static State currentState;
-		private static string currentNumber;
+		private static string currentValue;
 
 		public static double Calculate(string input)
 		{
-			currentNumber = "";
+			currentValue = "";
 			currentState = State.Initial;
 
 			foreach (var c in input)
 			{
-				switch (currentState)
-				{
-					case State.Initial:
-						ProcessInitial(c);
-						break;
-					case State.Integer:
-						ProcessInteger(c);
-						break;
-					case State.Decimal:
-						ProcessDecimal(c);
-						break;
-				}
+				var newState = ProcessState(c);
+				if (newState == currentState)
+					continue;
+
+				ChangeState(c, newState);
 			}
 
-			return Double.Parse(currentNumber, new CultureInfo("en-US"));
+			return Double.Parse(currentValue, new CultureInfo("en-US"));
 		}
 
-		private static void ProcessInitial(char c)
+		private static void ChangeState(char c, State newState)
+		{
+			if (currentState == State.Operator)
+			{
+				ExecuteOperator();
+			}
+			else if (currentState == State.Decimal || (currentState == State.Integer && newState != State.Decimal))
+			{
+				SaveNumber();
+			}
+			currentState = newState;
+
+			if (newState == State.Decimal)
+				return;
+
+			ProcessState(c);
+		}
+
+		private static State ProcessState(char c)
+		{
+			switch (currentState)
+			{
+				case State.Initial:
+					return ProcessInitial(c);
+				case State.Integer:
+					return ProcessInteger(c);
+				case State.Decimal:
+					return ProcessDecimal(c);
+				case State.Operator:
+					return ProcessOperator(c);
+			}
+			throw new Exception("Unexpected state");
+		}
+
+		private static State ProcessInitial(char c)
+		{
+			if (Char.IsDigit(c))
+				return State.Integer;
+			
+			throw new Exception("Unexpected char in input: " + c);
+		}
+
+		private static State ProcessInteger(char c)
 		{
 			if (Char.IsDigit(c))
 			{
-				currentState = State.Integer;
-				ProcessInteger(c);
+				currentValue += c;
+				return State.Integer;
 			}
-			else 
+
+			if (c == '.')
 			{
-				throw new Exception("Unexpected char in input: " + c);
+				currentValue += c;
+				return State.Decimal;
 			}
+
+			//ExecuteNumber();
+			return State.Operator;
 		}
 
-		private static void ProcessInteger(char c)
+		private static State ProcessDecimal(char c)
+		{
+			if (!Char.IsDigit(c))
+				return State.Operator;
+
+			currentValue += c;
+			return State.Decimal;
+		}
+
+		private static State ProcessOperator(char c)
 		{
 			if (Char.IsDigit(c))
-			{
-				currentNumber += c;
-			}
-			else if (c == '.')
-			{
-				currentNumber += c;
-				currentState = State.Decimal;
-			}
-			else
-			{
-				throw new Exception("Unexpected char in input: " + c);
-			}
-		}
+				return State.Integer;
 
-		private static void ProcessDecimal(char c)
-		{
-			if (Char.IsDigit(c))
-			{
-				currentNumber += c;
-			}
-			else
-			{
-				throw new Exception("Unexpected char in input: " + c);
-			}
-		}
+			currentValue += c;
+			return State.Operator;
 
+		}
 	}
 }

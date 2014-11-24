@@ -6,7 +6,7 @@ namespace ConsoleCalculator
 	{
 		private static readonly Dictionary<string, Operator> operators = new Dictionary<string, Operator>
 		{
-			{"+", new Operator{ Function = Plus, Priority = 1} }
+			{"+", new Operator{ Function = Plus, Priority = 1} },
 		};
 
 		private static double Plus(double arg1, double arg2)
@@ -16,7 +16,9 @@ namespace ConsoleCalculator
 
 		public static Operator Get(string key)
 		{
-			return operators[key];
+			Operator oper;
+			operators.TryGetValue(key, out oper);
+			return oper;
 		}
 	}
 }

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ConsoleCalculator
 {
@@ -10,6 +6,21 @@ namespace ConsoleCalculator
 	{
 		static void Main(string[] args)
 		{
+			while (true)
+			{
+				try
+				{
+					var input = Console.ReadLine();
+					if (input == "exit")
+						break;
+
+					Console.WriteLine(Calculator.Calculate(input));
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(ex.Message);
+				}
+			}
 		}
 	}
 }

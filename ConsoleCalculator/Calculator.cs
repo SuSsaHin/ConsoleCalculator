@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace ConsoleCalculator
 {
@@ -8,13 +10,16 @@ namespace ConsoleCalculator
 		private enum State
 		{
 			Initial,
-			Integer,
-			Decimal,
-			Operator
+			Number,
+			Operator,
+			End
 		}
 
 		private static State currentState;
 		private static string currentValue;
+
+		private static Stack<Operator> operators = new Stack<Operator>();
+		private static Stack<double> numbers = new Stack<double>(); 
 
 		public static double Calculate(string input)
 		{
@@ -27,28 +32,71 @@ namespace ConsoleCalculator
 				if (newState == currentState)
 					continue;
 
-				ChangeState(c, newState);
+				ChangeState(newState);
+				ProcessState(c);
 			}
+			
+			ChangeState(State.End);
+			ExecuteAllOperators();
 
-			return Double.Parse(currentValue, new CultureInfo("en-US"));
+			return numbers.Single();
 		}
 
-		private static void ChangeState(char c, State newState)
+		private static void ExecuteAllOperators()
+		{
+			if (numbers.Count != (operators.Count + 1))
+				throw new Exception("Bad input expression");
+
+			while (operators.Count != 0)
+			{
+				var frontOperator = operators.Pop();
+				var arg2 = numbers.Pop();
+				var arg1 = numbers.Pop();
+
+				numbers.Push(frontOperator.Function(arg1, arg2));
+			}
+		}
+
+		private static void ChangeState(State newState)
 		{
 			if (currentState == State.Operator)
 			{
-				ExecuteOperator();
+				ExecuteOperators();
 			}
-			else if (currentState == State.Decimal || (currentState == State.Integer && newState != State.Decimal))
+			else if (currentState == State.Number)
 			{
 				SaveNumber();
 			}
+
+			currentValue = "";
 			currentState = newState;
+		}
 
-			if (newState == State.Decimal)
-				return;
+		private static void ExecuteOperators()
+		{
+			var currentOperator = Operators.Get(currentValue);
+			if(currentOperator == null)
+				throw new Exception("Unknown operator");
+			
+			while (operators.Count != 0)
+			{
+				var frontOperator = operators.Peek();
+				if (frontOperator.Priority < currentOperator.Priority)
+					break;
 
-			ProcessState(c);
+				var arg2 = numbers.Pop();
+				var arg1 = numbers.Pop();
+				numbers.Push(frontOperator.Function(arg1, arg2));
+				operators.Pop();
+			}
+
+			operators.Push(currentOperator);
+		}
+
+		private static void SaveNumber()
+		{
+			var number = Double.Parse(currentValue, new CultureInfo("en-US"));
+			numbers.Push(number);
 		}
 
 		private static State ProcessState(char c)
@@ -57,10 +105,8 @@ namespace ConsoleCalculator
 			{
 				case State.Initial:
 					return ProcessInitial(c);
-				case State.Integer:
-					return ProcessInteger(c);
-				case State.Decimal:
-					return ProcessDecimal(c);
+				case State.Number:
+					return ProcessNumber(c);
 				case State.Operator:
 					return ProcessOperator(c);
 			}
@@ -70,42 +116,26 @@ namespace ConsoleCalculator
 		private static State ProcessInitial(char c)
 		{
 			if (Char.IsDigit(c))
-				return State.Integer;
+				return State.Number;
 			
 			throw new Exception("Unexpected char in input: " + c);
 		}
 
-		private static State ProcessInteger(char c)
+		private static State ProcessNumber(char c)
 		{
-			if (Char.IsDigit(c))
+			if (Char.IsDigit(c) || (c == '.' && !currentValue.Contains(".")))
 			{
 				currentValue += c;
-				return State.Integer;
+				return State.Number;
 			}
 
-			if (c == '.')
-			{
-				currentValue += c;
-				return State.Decimal;
-			}
-
-			//ExecuteNumber();
 			return State.Operator;
-		}
-
-		private static State ProcessDecimal(char c)
-		{
-			if (!Char.IsDigit(c))
-				return State.Operator;
-
-			currentValue += c;
-			return State.Decimal;
 		}
 
 		private static State ProcessOperator(char c)
 		{
 			if (Char.IsDigit(c))
-				return State.Integer;
+				return State.Number;
 
 			currentValue += c;
 			return State.Operator;

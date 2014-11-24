@@ -8,54 +8,25 @@ namespace ConsoleCalculator
 	{
 		public static uint MaxPriority { get; private set; }
 
-		private static readonly Dictionary<string, Operator> binaryOperators = new Dictionary<string, Operator>
+		private static readonly Dictionary<string, Operator> binaryOperators = new Dictionary<string, Operator>	//Operators keys can't start from '.'
 		{
-			{"+", new Operator(Sum, 1) },
-			{"-", new Operator(Difference, 1) },
-			{"*", new Operator(Mult, 2) },
-			{"/", new Operator(Division, 2) },
-			{"^", new Operator(Power, 3) },
+			{"+", new Operator((x, y) => x + y, 1) },
+			{"-", new Operator((x, y) => x - y, 1) },
+			{"*", new Operator((x, y) => x * y, 2) },
+			{"/", new Operator((x, y) => x / y, 2) },
+			{"^", new Operator(Math.Pow, 3) },
 		};
-
-		private static double Power(double arg1, double arg2)
-		{
-			return Math.Pow(arg1, arg2);
-		}
 
 		private static readonly Dictionary<string, Operator> unaryOperators = new Dictionary<string, Operator>
 		{
-			{"--", new Operator(Invert, 1000) },
-			{"-", new Operator(Invert, 1) },
+			{"--", new Operator(x => -x, 1000) },
+			{"-", new Operator(x => -x, 1) },
+			{"sign", new Operator(x => Math.Sign(x), 1) },
 		};
 
 		static Operators()
 		{
 			MaxPriority = Math.Max(binaryOperators.Max(oper => oper.Value.Priority), unaryOperators.Max(oper => oper.Value.Priority)) + 1;
-		}
-
-		private static double Invert(double arg)
-		{
-			return -arg;
-		}
-
-		private static double Mult(double arg1, double arg2)
-		{
-			return arg1 * arg2;
-		}
-
-		private static double Sum(double arg1, double arg2)
-		{
-			return arg1 + arg2;
-		}
-
-		private static double Difference(double arg1, double arg2)
-		{
-			return arg1 - arg2;
-		}
-
-		private static double Division(double arg1, double arg2)
-		{
-			return arg1 / arg2;
 		}
 
 		public static Operator GetBinary(string key)
@@ -64,7 +35,7 @@ namespace ConsoleCalculator
 			{
 				return new Operator(binaryOperators[key]);
 			}
-			catch (Exception)
+			catch (KeyNotFoundException)
 			{
 				throw new Exception("Unknown binary operator: " + key);
 			}
@@ -76,7 +47,7 @@ namespace ConsoleCalculator
 			{
 				return new Operator(unaryOperators[key]);
 			}
-			catch (Exception)
+			catch (KeyNotFoundException)
 			{
 				throw new Exception("Unknown unary operator: " + key);
 			}

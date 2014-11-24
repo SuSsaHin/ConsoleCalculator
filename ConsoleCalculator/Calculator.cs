@@ -9,169 +9,192 @@ namespace ConsoleCalculator
 	{
 		private enum State
 		{
-			Initial,
 			Number,
 			UnaryOperator,
 			BinaryOperator,
-			SameState
+			LeftBracket,
+			RightBracket,
+			Same	//The state hasn't changed
 		}
-
-		private string currentValue = "";
 
 		private readonly Stack<Operator> operators = new Stack<Operator>();
 		private readonly Stack<double> numbers = new Stack<double>();
 
-		private uint priorityDisp;
-		private readonly uint priorityStep = Operators.MaxPriority;
+		private uint priorityOffset;
+		private static readonly uint priorityStep = Operators.MaxPriority;
 
-		private void ExecuteOperators(Operator currentOperator)
-		{
-			currentOperator.Priority += priorityDisp;
-
-			while (operators.Count != 0)
-			{
-				var frontOperator = operators.Peek();
-				if (frontOperator.Priority < currentOperator.Priority)
-					break;
-
-				ExecuteOperator(frontOperator);
-
-				operators.Pop();
-			}
-
-			operators.Push(currentOperator);
-		}
-
-		private void ExecuteOperator(Operator oper)
-		{
-			if (oper.IsUnary)
-			{
-				numbers.Push(oper.UnaryFunction(numbers.Pop()));
-			}
-			else
-			{
-				var arg2 = numbers.Pop();
-				var arg1 = numbers.Pop();
-				numbers.Push(oper.BinaryFunction(arg1, arg2));
-			}
-		}
-
-		private void CompleteState(State currentState)
+		private static State GetNextState(State currentState, char c)
 		{
 			switch (currentState)
 			{
-				case State.UnaryOperator:
-					ExecuteOperators(Operators.GetUnary(currentValue));
-					break;
-				case State.BinaryOperator:
-					ExecuteOperators(Operators.GetBinary(currentValue));
-					break;
 				case State.Number:
-					SaveNumber();
-					break;
-			}
-
-			currentValue = "";
-		}
-
-		private void SaveNumber()
-		{
-			var number = Double.Parse(currentValue, new CultureInfo("en-US"));
-			numbers.Push(number);
-		}
-
-		private State ProcessState(State currentState, char c)
-		{
-			switch (currentState)
-			{
-				case State.Initial:
-					return ProcessInitial(c);
-				case State.Number:
-					return ProcessNumber(c);
+					return GetStateAfterNumber(c);
 				case State.UnaryOperator:
 				case State.BinaryOperator:
-					return ProcessOperator(c);
+					return GetStateAfterOperator(c);
+				case State.LeftBracket:
+					return GetStateAfterLeftBracket(c);
+				case State.RightBracket:
+					return GetStateAfterRightBracket(c);
 			}
 			throw new Exception("Unexpected state");
 		}
 
-		private State ProcessInitial(char c)
+		private static State GetStateAfterRightBracket(char c)
 		{
-			if (c == '(')
-			{
-				priorityDisp += priorityStep;
-				return State.SameState;
-			}
+			if (c == ')')
+				return State.RightBracket;
 
 			if (Char.IsDigit(c))
-				return State.Number;
-			
-			return State.UnaryOperator;
-		}
-
-		private State ProcessNumber(char c)
-		{
-			if (Char.IsDigit(c) || (c == '.' && !currentValue.Contains(".")))
-			{
-				currentValue += c;
-				return State.SameState;
-			}
-
-			if (c == ')')
-			{
-				if (priorityDisp < priorityStep)
-					throw new Exception("Unexpected ')'");
-
-				priorityDisp -= priorityStep;
-				return State.SameState;
-			}
+				throw new Exception("Unexpected number after ')'");
 
 			return State.BinaryOperator;
 		}
 
-		private State ProcessOperator(char c)
+		private static State GetStateAfterLeftBracket(char c)
+		{
+			if (c == '(')
+				return State.LeftBracket;
+
+			if (Char.IsDigit(c))
+				return State.Number;
+
+			return State.UnaryOperator;
+		}
+
+		private static State GetStateAfterNumber(char c)
+		{
+			if (Char.IsDigit(c) || c == '.')	//Multi-dot check made before pushing
+				return State.Same;
+
+			if (c == ')')
+				return State.RightBracket;
+
+			if (c == '(')
+				throw new Exception("Unexpected '('");
+
+			return State.BinaryOperator;
+		}
+
+		private static State GetStateAfterOperator(char c)
 		{
 			if (Char.IsDigit(c))
 				return State.Number;
 
 			if (c == '(')
-				return State.Initial;
+				return State.LeftBracket;
 
-			currentValue += c;
-			return State.SameState;
+			if (c == ')')
+				throw new Exception("Unexpected ')'");
+
+			return State.Same;
+		}
+
+		private void ExecuteOperator(Operator executed)
+		{
+			if (executed.IsUnary)
+			{
+				numbers.Push(executed.UnaryFunction(numbers.Pop()));
+				return;
+			}
+
+			var arg2 = numbers.Pop();
+			var arg1 = numbers.Pop();
+			numbers.Push(executed.BinaryFunction(arg1, arg2));
+		}
+
+		private void ExecuteOperators(uint minPriority = 0)
+		{
+			while (operators.Count != 0)
+			{
+				var frontOperator = operators.Peek();
+				if (frontOperator.Priority < minPriority)
+					break;
+
+				ExecuteOperator(frontOperator);
+				operators.Pop();
+			}
+		}
+
+		private void PushOperator(Operator currentOperator)
+		{
+			currentOperator.Priority += priorityOffset;
+
+			ExecuteOperators(currentOperator.Priority);
+			operators.Push(currentOperator);
+		}
+
+		private void PushNumber(string number)
+		{
+			if (number.Count(c => c == '.') > 1)
+				throw new Exception("Unexpected '.' in number");
+
+			numbers.Push(Double.Parse(number, new CultureInfo("en-US")));
+		}
+
+		private void CompleteState(State state, string value)
+		{
+			switch (state)
+			{
+				case State.UnaryOperator:
+					PushOperator(Operators.GetUnary(value));
+					break;
+				case State.BinaryOperator:
+					PushOperator(Operators.GetBinary(value));
+					break;
+				case State.Number:
+					PushNumber(value);
+					break;
+			}
 		}
 
 		private double GetAnswer(string input)
 		{
-			currentValue = "";
-			var currentState = State.Initial;
-			priorityDisp = 0;
+			if(input.Length == 0)
+				throw new Exception("Empty input");
+
+			var currentValue = "";
+			var currentState = GetNextState(State.LeftBracket, input[0]);	//Initial state is equal to LeftBracket state
+			priorityOffset = 0;
 
 			foreach (var c in input)
 			{
 				if (c == ' ')
 					continue;
 
-				var newState = ProcessState(currentState, c);
-				if (newState == State.SameState)
-					continue;
+				var newState = GetNextState(currentState, c);
+				if (newState != State.Same)
+				{
+					CompleteState(currentState, currentValue);
+					currentValue = "";
+					currentState = newState;
+				}
 
-				CompleteState(currentState);
-				currentState = newState;
-
-				ProcessState(currentState, c);
+				switch (currentState)
+				{
+					case State.LeftBracket:
+						priorityOffset += priorityStep;
+						break;
+					case State.RightBracket:
+						if (priorityOffset < priorityStep)
+							throw new Exception("Unexpected ')'");
+						priorityOffset -= priorityStep;
+						break;
+					default:
+						currentValue += c;
+						break;
+				}
 			}
 
-			CompleteState(currentState);
+			CompleteState(currentState, currentValue);
 
-			if (priorityDisp != 0)
-				throw new Exception("Lacking right bracket");
+			if (priorityOffset != 0)
+				throw new Exception("Lacking ')'");
 
 			if (numbers.Count != (operators.Count(oper => !oper.IsUnary) + 1))
 				throw new Exception("Bad input expression");
 
-			while (operators.Count != 0)
-				ExecuteOperator(operators.Pop());
+			ExecuteOperators();
 
 			return numbers.Single();
 		}

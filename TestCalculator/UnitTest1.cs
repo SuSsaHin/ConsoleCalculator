@@ -33,5 +33,16 @@ namespace TestCalculator
 			double calculated = Calculator.Calculate(input);
 			Assert.That(Math.Abs(calculated - result) < 0.0001);
 		}
+
+		[TestCase("55.55.55")]
+		[TestCase("25+()")]
+		[TestCase("25+(")]
+		[TestCase(")25")]
+		[TestCase("25+")]
+		[TestCase("")]
+		public void TestBadInput(string input)
+		{
+			Assert.Throws(typeof(Exception), () => Calculator.Calculate(input));
+		}
 	}
 }

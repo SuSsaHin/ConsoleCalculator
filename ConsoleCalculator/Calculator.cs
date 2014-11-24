@@ -11,7 +11,8 @@ namespace ConsoleCalculator
 		{
 			Initial,
 			Number,
-			Operator,
+			UnaryOperator,
+			BinaryOperator,
 			End
 		}
 
@@ -24,39 +25,8 @@ namespace ConsoleCalculator
 		private uint priorityDisp;
 		private readonly uint priorityStep = Operators.MaxPriority;
 
-		private void ExecuteAllOperators()
+		private void ExecuteOperators(Operator currentOperator)
 		{
-			if (numbers.Count != (operators.Count + 1))
-				throw new Exception("Bad input expression");
-
-			while (operators.Count != 0)
-			{
-				var frontOperator = operators.Pop();
-				var arg2 = numbers.Pop();
-				var arg1 = numbers.Pop();
-
-				numbers.Push(frontOperator.Function(arg1, arg2));
-			}
-		}
-
-		private void ChangeState(State newState)
-		{
-			if (currentState == State.Operator)
-			{
-				ExecuteOperators();
-			}
-			else if (currentState == State.Number)
-			{
-				SaveNumber();
-			}
-
-			currentValue = "";
-			currentState = newState;
-		}
-
-		private void ExecuteOperators()
-		{
-			var currentOperator = Operators.Get(currentValue);
 			currentOperator.Priority += priorityDisp;
 
 			while (operators.Count != 0)
@@ -65,13 +35,45 @@ namespace ConsoleCalculator
 				if (frontOperator.Priority < currentOperator.Priority)
 					break;
 
-				var arg2 = numbers.Pop();
-				var arg1 = numbers.Pop();
-				numbers.Push(frontOperator.Function(arg1, arg2));
+				ExecuteOperator(frontOperator);
+
 				operators.Pop();
 			}
 
 			operators.Push(currentOperator);
+		}
+
+		private void ExecuteOperator(Operator oper)
+		{
+			if (oper.IsUnary)
+			{
+				numbers.Push(oper.UnaryFunction(numbers.Pop()));
+			}
+			else
+			{
+				var arg2 = numbers.Pop();
+				var arg1 = numbers.Pop();
+				numbers.Push(oper.BinaryFunction(arg1, arg2));
+			}
+		}
+
+		private void ChangeState(State newState)
+		{
+			switch (currentState)
+			{
+				case State.UnaryOperator:
+					ExecuteOperators(Operators.GetUnary(currentValue));
+					break;
+				case State.BinaryOperator:
+					ExecuteOperators(Operators.GetBinary(currentValue));
+					break;
+				case State.Number:
+					SaveNumber();
+					break;
+			}
+
+			currentValue = "";
+			currentState = newState;
 		}
 
 		private void SaveNumber()
@@ -88,7 +90,8 @@ namespace ConsoleCalculator
 					return ProcessInitial(c);
 				case State.Number:
 					return ProcessNumber(c);
-				case State.Operator:
+				case State.UnaryOperator:
+				case State.BinaryOperator:
 					return ProcessOperator(c);
 			}
 			throw new Exception("Unexpected state");
@@ -105,7 +108,7 @@ namespace ConsoleCalculator
 			if (Char.IsDigit(c))
 				return State.Number;
 			
-			throw new Exception("Unexpected char in input: " + c);
+			return State.UnaryOperator;
 		}
 
 		private State ProcessNumber(char c)
@@ -118,14 +121,14 @@ namespace ConsoleCalculator
 
 			if (c == ')')
 			{
-				if(priorityDisp < priorityStep)
+				if (priorityDisp < priorityStep)
 					throw new Exception("Unexpected ')'");
 
 				priorityDisp -= priorityStep;
 				return State.Number;
 			}
 
-			return State.Operator;
+			return State.BinaryOperator;
 		}
 
 		private State ProcessOperator(char c)
@@ -137,7 +140,7 @@ namespace ConsoleCalculator
 				return State.Initial;
 
 			currentValue += c;
-			return State.Operator;
+			return State.BinaryOperator;
 
 		}
 
@@ -161,7 +164,15 @@ namespace ConsoleCalculator
 			}
 
 			ChangeState(State.End);
-			ExecuteAllOperators();
+
+			if (priorityDisp != 0)
+				throw new Exception("Lacking right bracket");
+
+			if (numbers.Count != (operators.Count(oper => !oper.IsUnary) + 1))
+				throw new Exception("Bad input expression");
+
+			while (operators.Count != 0)
+				ExecuteOperator(operators.Pop());
 
 			return numbers.Single();
 		}

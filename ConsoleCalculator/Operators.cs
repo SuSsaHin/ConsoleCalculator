@@ -8,7 +8,7 @@ namespace ConsoleCalculator
 	{
 		public static uint MaxPriority { get; private set; }
 
-		private static readonly Dictionary<string, Operator> binaryOperators = new Dictionary<string, Operator>	//Operators keys can't start from '.'
+		private static readonly Dictionary<string, Operator> binaryOperators = new Dictionary<string, Operator>		//Binary operators keys can't start from '.'
 		{
 			{"+", new Operator((x, y) => x + y, 1) },
 			{"-", new Operator((x, y) => x - y, 1) },
@@ -19,7 +19,7 @@ namespace ConsoleCalculator
 
 		private static readonly Dictionary<string, Operator> unaryOperators = new Dictionary<string, Operator>
 		{
-			{"--", new Operator(x => -x, 1000) },
+			{".-", new Operator(x => -x, 1000) },
 			{"-", new Operator(x => -x, 1) },
 			{"sign", new Operator(x => Math.Sign(x), 1) },
 		};

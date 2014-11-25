@@ -8,12 +8,12 @@ namespace ConsoleCalculator
 		{
 			while (true)
 			{
+				var input = Console.ReadLine();
+				if (input == "exit")
+					break;
+
 				try
 				{
-					var input = Console.ReadLine();
-					if (input == "exit")
-						break;
-
 					Console.WriteLine(Calculator.Calculate(input));
 				}
 				catch (Exception ex)

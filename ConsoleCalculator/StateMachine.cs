@@ -7,93 +7,18 @@ namespace ConsoleCalculator
 {
 	public partial class Calculator
 	{
-		private class StateMachine
+		private partial class StateMachine
 		{
-			private enum State
-			{
-				Number,
-				UnaryOperator,
-				BinaryOperator,
-				LeftBracket,
-				RightBracket,
-				Same	//The state hasn't changed
-			}
+			
 
 			private readonly Stack<Operator> operators = new Stack<Operator>();
 			private readonly Stack<double> numbers = new Stack<double>();
 
-			private string currentValue = "";
-			private State currentState = State.LeftBracket;		//Initial state is equal to LeftBracket state
+			private string currentValue;
+			private States.State currentState;
 
 			private uint priorityOffset;
 			private static readonly uint priorityStep = Operators.MaxPriority;
-
-			private State GetNextState(char c)
-			{
-				switch (currentState)
-				{
-					case State.Number:
-						return GetStateAfterNumber(c);
-					case State.UnaryOperator:
-					case State.BinaryOperator:
-						return GetStateAfterOperator(c);
-					case State.LeftBracket:
-						return GetStateAfterLeftBracket(c);
-					case State.RightBracket:
-						return GetStateAfterRightBracket(c);
-				}
-				throw new Exception("Unexpected state");
-			}
-
-			private static State GetStateAfterRightBracket(char c)
-			{
-				if (c == ')')
-					return State.RightBracket;
-
-				if (Char.IsDigit(c))
-					throw new Exception("Unexpected number after ')'");
-
-				return State.BinaryOperator;
-			}
-
-			private static State GetStateAfterLeftBracket(char c)
-			{
-				if (c == '(')
-					return State.LeftBracket;
-
-				if (Char.IsDigit(c))
-					return State.Number;
-
-				return State.UnaryOperator;
-			}
-
-			private static State GetStateAfterNumber(char c)
-			{
-				if (Char.IsDigit(c) || c == '.')	//Multi-dot check made before pushing
-					return State.Same;
-
-				if (c == ')')
-					return State.RightBracket;
-
-				if (c == '(')
-					throw new Exception("Unexpected '('");
-
-				return State.BinaryOperator;
-			}
-
-			private static State GetStateAfterOperator(char c)
-			{
-				if (Char.IsDigit(c))
-					return State.Number;
-
-				if (c == '(')
-					return State.LeftBracket;
-
-				if (c == ')')
-					throw new Exception("Unexpected ')'");
-
-				return State.Same;
-			}
 
 			private void ExecuteOperator(Operator executed)
 			{
@@ -141,13 +66,13 @@ namespace ConsoleCalculator
 			{
 				switch (currentState)
 				{
-					case State.UnaryOperator:
+					case States.State.UnaryOperator:
 						PushOperator(Operators.GetUnary(currentValue));
 						break;
-					case State.BinaryOperator:
+					case States.State.BinaryOperator:
 						PushOperator(Operators.GetBinary(currentValue));
 						break;
-					case State.Number:
+					case States.State.Number:
 						PushNumber(currentValue);
 						break;
 				}
@@ -158,8 +83,8 @@ namespace ConsoleCalculator
 				if (c == ' ')
 					return;
 
-				var newState = GetNextState(c);
-				if (newState != State.Same)
+				var newState = States.GetNext(currentState, c);
+				if (newState != States.State.Same)
 				{
 					CompleteCurrentState();
 					currentValue = "";
@@ -168,10 +93,10 @@ namespace ConsoleCalculator
 
 				switch (currentState)
 				{
-					case State.LeftBracket:
+					case States.State.LeftBracket:
 						priorityOffset += priorityStep;
 						break;
-					case State.RightBracket:
+					case States.State.RightBracket:
 						if (priorityOffset < priorityStep)
 							throw new Exception("Unexpected ')'");
 						priorityOffset -= priorityStep;
@@ -185,7 +110,7 @@ namespace ConsoleCalculator
 			public void Clear()
 			{
 				currentValue = "";
-				currentState = State.LeftBracket;
+				currentState = States.State.LeftBracket;		//Initial state is equal to LeftBracket state
 				priorityOffset = 0;
 				operators.Clear();
 				numbers.Clear();
@@ -204,6 +129,11 @@ namespace ConsoleCalculator
 				ExecuteOperators();
 
 				return numbers.Single();
+			}
+
+			public StateMachine()
+			{
+				Clear();
 			}
 		}
 	}

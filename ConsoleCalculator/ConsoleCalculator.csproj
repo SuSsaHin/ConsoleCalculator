@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Calculator.cs" />
+    <Compile Include="IOperator.cs" />
     <Compile Include="Operator.cs" />
     <Compile Include="Operators.cs" />
     <Compile Include="Program.cs" />

@@ -1,56 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace ConsoleCalculator
 {
 	public class Operators
 	{
-		public static uint MaxPriority { get; private set; }
+		private Dictionary<string, Dictionary<string, IOperator>> operators = new Dictionary<string, Dictionary<string, IOperator>>(); 
 
-		private static readonly Dictionary<string, Operator> binaryOperators = new Dictionary<string, Operator>		//Binary operators keys can't start from '.'
+		public IOperator Get(string key)
 		{
-			{"+", new Operator((x, y) => x + y, 1) },
-			{"-", new Operator((x, y) => x - y, 1) },
-			{"*", new Operator((x, y) => x * y, 2) },
-			{"/", new Operator((x, y) => x / y, 2) },
-			{"^", new Operator(Math.Pow, 3) },
-		};
-
-		private static readonly Dictionary<string, Operator> unaryOperators = new Dictionary<string, Operator>
-		{
-			{".-", new Operator(x => -x, 1000) },
-			{"-", new Operator(x => -x, 1) },
-			{"sign", new Operator(x => Math.Sign(x), 1) },
-		};
-
-		static Operators()
-		{
-			MaxPriority = Math.Max(binaryOperators.Max(oper => oper.Value.Priority), unaryOperators.Max(oper => oper.Value.Priority)) + 1;
+			IOperator result = null;
+			if (operators.Any(set => set.Value.TryGetValue(key, out result)))
+			{
+				return result;
+			}
+			throw new Exception("Unknown binary operator: " + key);
 		}
 
-		public static Operator GetBinary(string key)
+		public void AddPlugin(string dllPath)
 		{
-			try
+			var dllName = Path.GetFileName(dllPath);
+			if (dllName == null)
+				throw new Exception("Dll name is null");
+			
+			if (operators.ContainsKey(dllName))
+				throw new Exception("Dll " + dllName + " was always loaded");
+
+			var plugin = Assembly.LoadFile(dllPath);
+			var newTypes = plugin.GetTypes().Where(t => t.GetInterfaces().Contains(typeof (IOperator)));
+			var newOperators = new Dictionary<string, IOperator>();
+
+			foreach (var type in newTypes)
 			{
-				return new Operator(binaryOperators[key]);
+				var added = (IOperator)Activator.CreateInstance(type);
+
+				foreach (var set in operators)
+				{
+					if (set.Value.ContainsKey(added.Key))
+						throw new Exception(set.Key + " contains operator " + added.Key);
+				}
+
+				newOperators.Add(added.Key, added);
 			}
-			catch (KeyNotFoundException)
-			{
-				throw new Exception("Unknown binary operator: " + key);
-			}
+
+			operators.Add(dllName, newOperators);
 		}
 
-		public static Operator GetUnary(string key)
+		public bool DeletePlugin(string dllName)
 		{
-			try
-			{
-				return new Operator(unaryOperators[key]);
-			}
-			catch (KeyNotFoundException)
-			{
-				throw new Exception("Unknown unary operator: " + key);
-			}
+			return operators.Remove(dllName);
 		}
 	}
 }

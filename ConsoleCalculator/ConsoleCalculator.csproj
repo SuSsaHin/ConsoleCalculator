@@ -41,7 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BinaryOperator.cs" />
     <Compile Include="Calculator.cs" />
+    <Compile Include="IOperator.cs" />
     <Compile Include="Operator.cs" />
     <Compile Include="Operators.cs" />
     <Compile Include="Program.cs" />
@@ -54,6 +56,7 @@
     <Compile Include="States\NumberState.cs" />
     <Compile Include="States\ActiveState.cs" />
     <Compile Include="States\UnaryOperatorState.cs" />
+    <Compile Include="UnaryOperator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

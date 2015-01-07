@@ -46,8 +46,14 @@
     <Compile Include="Operators.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StateMachine.cs" />
-    <Compile Include="States.cs" />
+    <Compile Include="CalculatorContext.cs" />
+    <Compile Include="States\BinaryOperatorState.cs" />
+    <Compile Include="States\InitialState.cs" />
+    <Compile Include="States\InnerExpressionState.cs" />
+    <Compile Include="States\IState.cs" />
+    <Compile Include="States\NumberState.cs" />
+    <Compile Include="States\ActiveState.cs" />
+    <Compile Include="States\UnaryOperatorState.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

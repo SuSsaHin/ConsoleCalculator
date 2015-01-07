@@ -4,7 +4,7 @@
 	{
 		public static double Calculate(string input)
 		{
-			var stateMachine = new StateMachine();
+			var stateMachine = new CalculatorContext();
 			foreach (var c in input)
 			{
 				stateMachine.ProcessCharacter(c);

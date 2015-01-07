@@ -43,7 +43,7 @@ namespace ConsoleCalculator
 				if (Char.IsDigit(c))
 					return new NumberState(c);
 
-				return new BinaryOperatorState(c);
+				return new OperatorState(c, 2);
 			}
 		}
 	}

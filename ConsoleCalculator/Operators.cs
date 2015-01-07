@@ -1,56 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using ConsoleCalculator.MyOperators;
 
 namespace ConsoleCalculator
 {
 	public class Operators
 	{
-		public static uint MaxPriority { get; private set; }
-
-		private static readonly Dictionary<string, Operator> binaryOperators = new Dictionary<string, Operator>		//Binary operators keys can't start from '.'
-		{
-			{"+", new Operator((x, y) => x + y, 1) },
-			{"-", new Operator((x, y) => x - y, 1) },
-			{"*", new Operator((x, y) => x * y, 2) },
-			{"/", new Operator((x, y) => x / y, 2) },
-			{"^", new Operator(Math.Pow, 3) },
-		};
-
-		private static readonly Dictionary<string, Operator> unaryOperators = new Dictionary<string, Operator>
-		{
-			{".-", new Operator(x => -x, 1000) },
-			{"-", new Operator(x => -x, 1) },
-			{"sign", new Operator(x => Math.Sign(x), 1) },
-		};
+		private static readonly Dictionary<string, IOperator> operators = new Dictionary<string, IOperator>();
 
 		static Operators()
 		{
-			MaxPriority = Math.Max(binaryOperators.Max(oper => oper.Value.Priority), unaryOperators.Max(oper => oper.Value.Priority)) + 1;
+			Add(new PlusOperator());
+			Add(new DivisionOperator());
+			Add(new MinusOperator());
+			Add(new MultiplyOperator());
+
+			Add(new MinusUnaryOperator());
 		}
 
-		public static Operator GetBinary(string key)
+		public static IOperator Get(string text, int dimension)
 		{
+			var key = text + " /" + dimension;
 			try
 			{
-				return new Operator(binaryOperators[key]);
+				return operators[key];
 			}
 			catch (KeyNotFoundException)
 			{
-				throw new Exception("Unknown binary operator: " + key);
+				throw new Exception("Unknown operator: " + key);
 			}
 		}
 
-		public static Operator GetUnary(string key)
+		private static void Add(IOperator oper)
 		{
-			try
-			{
-				return new Operator(unaryOperators[key]);
-			}
-			catch (KeyNotFoundException)
-			{
-				throw new Exception("Unknown unary operator: " + key);
-			}
+			operators.Add(oper.Text + " /" + oper.Dimension, oper);
 		}
 	}
 }

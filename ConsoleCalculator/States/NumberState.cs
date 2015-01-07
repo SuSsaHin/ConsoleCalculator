@@ -45,7 +45,7 @@ namespace ConsoleCalculator
 				if (c == '(')
 					throw new Exception("Unexpected '('");
 
-				return new BinaryOperatorState(c);
+				return new OperatorState(c, 2);
 			}
 		}
 	}

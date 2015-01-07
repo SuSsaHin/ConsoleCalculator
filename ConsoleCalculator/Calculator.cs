@@ -4,13 +4,13 @@
 	{
 		public static double Calculate(string input)
 		{
-			var stateMachine = new CalculatorContext();
+			var context = new CalculatorContext();
 			foreach (var c in input)
 			{
-				stateMachine.ProcessCharacter(c);
+				context.ProcessCharacter(c);
 			}
 
-			return stateMachine.GetAnswer();
+			return context.GetAnswer();
 		}
 	}
 }

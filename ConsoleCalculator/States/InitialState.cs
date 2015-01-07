@@ -23,7 +23,7 @@ namespace ConsoleCalculator
 				}
 				else
 				{
-					nextState = new UnaryOperatorState(c);
+					nextState = new OperatorState(c, 1);
 				}
 
 				calculator.CurrentState = nextState;

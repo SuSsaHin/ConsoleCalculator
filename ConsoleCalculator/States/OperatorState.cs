@@ -4,23 +4,25 @@ namespace ConsoleCalculator
 {
 	public partial class Calculator
 	{
-		private sealed class UnaryOperatorState : ActiveState
+		private sealed class OperatorState : ActiveState
 		{
-			private string unaryOperator;
+			private string oper;
+			private readonly int dimension;
 
-			public UnaryOperatorState(char c)
+			public OperatorState(char c, int dimension)
 			{
+				this.dimension = dimension;
 				Process(c);
 			}
 
 			protected override void Process(char c)
 			{
-				unaryOperator += c;
+				oper += c;
 			}
 
 			public override void Complete(CalculatorContext calculator)
 			{
-				calculator.PushUnaryOperator(unaryOperator);
+				calculator.PushOperator(oper, dimension);
 			}
 
 			protected override IState GetNext(char c)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ConsoleCalculator;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NUnit.Framework;
@@ -12,8 +13,8 @@ namespace TestCalculator
 		[TestCase("+", 1, 2, 1+2)]
 		public void TestBinaryOperators(string key, double arg1, double arg2, double result)
 		{
-			var oper = Operators.GetBinary(key);
-			Assert.That(Math.Abs(oper.BinaryFunction(arg1, arg2) - result) < 0.0001);
+			var oper = Operators.Get(key, 2);
+			Assert.That(Math.Abs(oper.Execute(new List<double>{arg1, arg2}) - result) < 0.0001);
 		}
 
 		[TestCase("55", 55)]

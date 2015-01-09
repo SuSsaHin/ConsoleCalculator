@@ -1,8 +1,8 @@
-﻿using ConsoleCalculator.MyOperators;
+﻿using OperatorsLibrary;
 
 namespace ConsoleCalculator
 {
-	interface IOperators
+	public interface IOperators
 	{
 		IOperator Get(string text, int dimension);
 	}

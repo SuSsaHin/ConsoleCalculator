@@ -1,4 +1,6 @@
-﻿namespace ConsoleCalculator.MyOperators
+﻿using OperatorsLibrary;
+
+namespace ConsoleCalculator.MyOperators
 {
 	class PlusOperator : BinaryOperator
 	{

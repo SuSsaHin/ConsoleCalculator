@@ -6,6 +6,7 @@ namespace ConsoleCalculator
 	{
 		static void Main(string[] args)
 		{
+			var operators = new PluginsOperators();
 			while (true)
 			{
 				var input = Console.ReadLine();
@@ -14,7 +15,7 @@ namespace ConsoleCalculator
 
 				try
 				{
-					Console.WriteLine(Calculator.Calculate(input));
+					Console.WriteLine(Calculator.Calculate(input, operators));
 				}
 				catch (Exception ex)
 				{

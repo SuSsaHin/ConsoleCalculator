@@ -24,7 +24,8 @@ namespace TestCalculator
 		[TestCase(".-2^4", 16)]
 		public void TestParsing(string input, double result)
 		{
-			double calculated = Calculator.Calculate(input);
+			var operators = new PluginsOperators();
+			double calculated = Calculator.Calculate(input, operators);
 			Assert.That(Math.Abs(calculated - result) < 0.0001);
 		}
 
@@ -36,7 +37,18 @@ namespace TestCalculator
 		[TestCase("")]
 		public void TestBadInput(string input)
 		{
-			Assert.Throws(typeof(Exception), () => Calculator.Calculate(input));
+			var operators = new PluginsOperators();
+			Assert.Throws(typeof(Exception), () => Calculator.Calculate(input, operators));
+		}
+
+		[TestCase("TestLib.dll", "2+(sign 1)", 3)]
+		public void TestDll(string dllName, string input, double result)
+		{
+			var operators = new PluginsOperators();
+			operators.AddPlugin(dllName);
+
+			double calculated = Calculator.Calculate(input, operators);
+			Assert.That(Math.Abs(calculated - result) < 0.0001);
 		}
 	}
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using ConsoleCalculator.MyOperators;
+using OperatorsLibrary;
 
 namespace ConsoleCalculator
 {
@@ -18,19 +19,13 @@ namespace ConsoleCalculator
 
 		public PluginsOperators()
 		{
-			var plus = new PlusOperator();
-			var division = new DivisionOperator();
-			var multiply = new MultiplyOperator();
-			var minus = new MinusOperator();
-			var minusUnary = new MinusUnaryOperator();
-
 			var operatorsList = new List<IOperator>
 			{
-				plus,
-				division,
-				multiply,
-				minus,
-				minusUnary
+				new PlusOperator(),
+				new DivisionOperator(),
+				new MultiplyOperator(),
+				new MinusOperator(),
+				new MinusUnaryOperator(),
 			};
 
 			var baseOperators = operatorsList.ToDictionary(op => GetKey(op.Text, op.Dimension));
@@ -59,8 +54,10 @@ namespace ConsoleCalculator
 			if (operators.ContainsKey(dllName))
 				throw new Exception("Dll " + dllName + " was always loaded");
 
-			var plugin = Assembly.LoadFile(dllPath);
-			var newTypes = plugin.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(IOperator)));
+			var fullPath = Path.GetFullPath(dllPath);
+
+			var plugin = Assembly.LoadFile(fullPath);
+			var newTypes = plugin.GetTypes().Where(t => t.GetInterfaces().Any(inter => inter.Name == typeof(IOperator).Name)).ToList();
 			var newOperators = new Dictionary<string, IOperator>();
 
 			foreach (var type in newTypes)

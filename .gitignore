@@ -6,3 +6,5 @@ ConsoleCalculator/obj/
 *.sln.docstates
 TestCalculator/bin/
 TestCalculator/obj
+obj
+bin

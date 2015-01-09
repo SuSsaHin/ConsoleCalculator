@@ -4,7 +4,7 @@
 	{
 		public static double Calculate(string input)
 		{
-			var context = new CalculatorContext();
+			var context = new CalculatorContext(new PluginsOperators());
 			foreach (var c in input)
 			{
 				context.ProcessCharacter(c);

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ConsoleCalculator.MyOperators;
@@ -10,6 +9,12 @@ namespace ConsoleCalculator
 	{
 		private class CalculatorContext
 		{
+			public const char DecimalSeparator = '.';
+			public const char LeftBracket = '(';
+			public const char RightBracket = ')';
+
+			public IOperators AllOperators { get; private set; }
+
 			private readonly Stack<IOperator> operators = new Stack<IOperator>();
 			private readonly Stack<double> numbers = new Stack<double>();
 
@@ -17,7 +22,7 @@ namespace ConsoleCalculator
 
 			public void PushOperator(string key, int dimension)
 			{
-				var oper = Operators.Get(key, dimension);
+				var oper = AllOperators.Get(key, dimension);
 				ExecuteOperators(oper.Priority);
 				operators.Push(oper);
 			}
@@ -72,8 +77,9 @@ namespace ConsoleCalculator
 				return numbers.Single();
 			}
 
-			public CalculatorContext()
+			public CalculatorContext(IOperators allOperators)
 			{
+				AllOperators = allOperators;
 				CurrentState = new InitialState();
 			}
 		}

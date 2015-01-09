@@ -10,13 +10,6 @@ namespace TestCalculator
 	[TestClass]
 	public class UnitTest1
 	{
-		[TestCase("+", 1, 2, 1+2)]
-		public void TestBinaryOperators(string key, double arg1, double arg2, double result)
-		{
-			var oper = Operators.Get(key, 2);
-			Assert.That(Math.Abs(oper.Execute(new List<double>{arg1, arg2}) - result) < 0.0001);
-		}
-
 		[TestCase("55", 55)]
 		[TestCase("10", 10)]
 		[TestCase("1.0", 1)]

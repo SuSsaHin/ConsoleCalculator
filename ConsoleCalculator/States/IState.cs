@@ -10,8 +10,8 @@ namespace ConsoleCalculator
 	{
 		private interface IState
 		{
-			void ProcessChar(CalculatorContext calculator, char c);
-			void Complete(CalculatorContext calculator);
+			void ProcessChar(CalculatorContext context, char c);
+			void Complete(CalculatorContext context);
 		}
 	}
 }

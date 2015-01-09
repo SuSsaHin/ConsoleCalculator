@@ -5,7 +5,7 @@ namespace ConsoleCalculator
 {
 	public partial class Calculator
 	{
-		private sealed class NumberState : ActiveState
+		private sealed class NumberState : IState 
 		{
 			private string number;
 			private bool hasDot;
@@ -15,35 +15,46 @@ namespace ConsoleCalculator
 				Process(c);
 			}
 
-			protected override void Process(char c)
+			public void ProcessChar(CalculatorContext context, char c)
+			{
+				var nextState = GetNext(c);
+
+				if (nextState == null)
+				{
+					Process(c);
+					return;
+				}
+
+				Complete(context);
+				context.CurrentState = nextState;
+			}
+
+			private void Process(char c)
 			{
 				number += c;
 			}
 
-			public override void Complete(CalculatorContext calculator)
+			public void Complete(CalculatorContext context)
 			{
-				calculator.PushNumber(Double.Parse(number, new CultureInfo("en-US")));
+				context.PushNumber(Double.Parse(number, new CultureInfo("en-US")));
 			}
 
-			protected override IState GetNext(char c)
+			private IState GetNext(char c)
 			{
 				if (Char.IsDigit(c))
 					return null;
 
-				if (c == '.')
+				if (c == CalculatorContext.DecimalSeparator)
 				{
 					if (hasDot)
-						throw new Exception("Unexpected '.'");
+						throw new Exception("Unexpected " + CalculatorContext.DecimalSeparator);
 
 					hasDot = true;
 					return null;
 				}
 
-				if (c == ')')
-					throw new Exception("Unexpected ')'");
-
-				if (c == '(')
-					throw new Exception("Unexpected '('");
+				if (c == CalculatorContext.RightBracket || c == CalculatorContext.LeftBracket)
+					throw new Exception("Unexpected " + c);
 
 				return new OperatorState(c, 2);
 			}

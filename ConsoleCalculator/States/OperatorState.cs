@@ -4,7 +4,7 @@ namespace ConsoleCalculator
 {
 	public partial class Calculator
 	{
-		private sealed class OperatorState : ActiveState
+		private sealed class OperatorState : IState
 		{
 			private string oper;
 			private readonly int dimension;
@@ -15,26 +15,40 @@ namespace ConsoleCalculator
 				Process(c);
 			}
 
-			protected override void Process(char c)
+			public void ProcessChar(CalculatorContext context, char c)
+			{
+				var nextState = GetNext(context, c);
+
+				if (nextState == null)
+				{
+					Process(c);
+					return;
+				}
+
+				Complete(context);
+				context.CurrentState = nextState;
+			}
+
+			private void Process(char c)
 			{
 				oper += c;
 			}
 
-			public override void Complete(CalculatorContext calculator)
+			public void Complete(CalculatorContext context)
 			{
-				calculator.PushOperator(oper, dimension);
+				context.PushOperator(oper, dimension);
 			}
 
-			protected override IState GetNext(char c)
+			private IState GetNext(CalculatorContext context, char c)
 			{
 				if (Char.IsDigit(c))
 					return new NumberState(c);
 
-				if (c == '(')
-					return new InnerExpressionState();
+				if (c == CalculatorContext.LeftBracket)
+					return new InnerExpressionState(c, context);
 
-				if (c == ')')
-					throw new Exception("Unexpected ')'");
+				if (c == CalculatorContext.RightBracket)
+					throw new Exception("Unexpected " + c);
 
 				return null;
 			}

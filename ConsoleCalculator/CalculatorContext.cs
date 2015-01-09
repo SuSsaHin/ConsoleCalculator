@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ConsoleCalculator.MyOperators;
 
 namespace ConsoleCalculator
 {
@@ -8,23 +9,22 @@ namespace ConsoleCalculator
 	{
 		private class CalculatorContext
 		{
-			private readonly Stack<Operator> operators = new Stack<Operator>();
+			public const char DecimalSeparator = '.';
+			public const char LeftBracket = '(';
+			public const char RightBracket = ')';
+
+			public IOperators AllOperators { get; private set; }
+
+			private readonly Stack<IOperator> operators = new Stack<IOperator>();
 			private readonly Stack<double> numbers = new Stack<double>();
 
 			public IState CurrentState { private get; set; }
 
-			public void PushUnaryOperator(string key)
+			public void PushOperator(string key, int dimension)
 			{
-				var unary = Operators.GetUnary(key);
-				ExecuteOperators(unary.Priority);
-				operators.Push(unary);
-			}
-
-			public void PushBinaryOperator(string key)
-			{
-				var binary = Operators.GetBinary(key);
-				ExecuteOperators(binary.Priority);
-				operators.Push(binary);
+				var oper = AllOperators.Get(key, dimension);
+				ExecuteOperators(oper.Priority);
+				operators.Push(oper);
 			}
 
 			public void PushNumber(double number)
@@ -32,17 +32,16 @@ namespace ConsoleCalculator
 				numbers.Push(number);
 			}
 
-			private void ExecuteOperator(Operator executed)
+			private void ExecuteOperator(IOperator executed)
 			{
-				if (executed.IsUnary)
+				var args = new List<double>();
+
+				for (int i = 0; i < executed.Dimension; i++)
 				{
-					numbers.Push(executed.UnaryFunction(numbers.Pop()));
-					return;
+					args.Insert(0, numbers.Pop());
 				}
 
-				var arg2 = numbers.Pop();
-				var arg1 = numbers.Pop();
-				numbers.Push(executed.BinaryFunction(arg1, arg2));
+				numbers.Push(executed.Execute(args));
 			}
 
 			private void ExecuteOperators(uint minPriority = 0)
@@ -70,7 +69,7 @@ namespace ConsoleCalculator
 			{
 				CurrentState.Complete(this);
 
-				if (numbers.Count != (operators.Count(oper => !oper.IsUnary) + 1))
+				if (numbers.Count != (operators.Sum(oper => oper.Dimension - 1) + 1))
 					throw new Exception("Bad input expression");
 
 				ExecuteOperators();
@@ -78,8 +77,9 @@ namespace ConsoleCalculator
 				return numbers.Single();
 			}
 
-			public CalculatorContext()
+			public CalculatorContext(IOperators allOperators)
 			{
+				AllOperators = allOperators;
 				CurrentState = new InitialState();
 			}
 		}

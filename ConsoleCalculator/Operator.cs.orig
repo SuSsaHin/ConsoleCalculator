@@ -2,7 +2,7 @@
 
 namespace ConsoleCalculator
 {
-	public class Operator
+	public class Operator : IOperator
 	{
 		public Func<double, double, double> BinaryFunction { get; private set; }
 		public Func<double, double> UnaryFunction { get; private set; }

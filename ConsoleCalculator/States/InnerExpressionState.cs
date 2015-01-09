@@ -4,46 +4,68 @@ namespace ConsoleCalculator
 {
 	public partial class Calculator
 	{
-		private sealed class InnerExpressionState : ActiveState
+		private sealed class InnerExpressionState : IState
 		{
-			private readonly CalculatorContext innerContext = new CalculatorContext();
-			private int breacketsDiff = 1;
+			private readonly CalculatorContext innerContext;
+			private int bracketsDiff = 1;
 
-			protected override void Process(char c)
+			public InnerExpressionState(char c, CalculatorContext context)
 			{
-				if (c == '(')
-					breacketsDiff++;
-				else if (c == ')')
-				{
-					breacketsDiff--;
+				if (c != CalculatorContext.LeftBracket)
+					throw new Exception("Unexpected inner expression state initializer");
 
-					if (breacketsDiff == 0)
+				innerContext = new CalculatorContext(context.AllOperators);
+			}
+
+			public void ProcessChar(CalculatorContext context, char c)
+			{
+				var nextState = GetNext(c);
+
+				if (nextState == null)
+				{
+					Process(c);
+					return;
+				}
+
+				Complete(context);
+				context.CurrentState = nextState;
+			}
+
+			private void Process(char c)
+			{
+				if (c == CalculatorContext.LeftBracket)
+					bracketsDiff++;
+				else if (c == CalculatorContext.RightBracket)
+				{
+					bracketsDiff--;
+
+					if (bracketsDiff == 0)
 						return;
 				}
 
 				innerContext.ProcessCharacter(c);
 			}
 
-			public override void Complete(CalculatorContext calculator)
+			public void Complete(CalculatorContext context)
 			{
-				if (breacketsDiff != 0)
-					throw new Exception("Lacking ')'");
+				if (bracketsDiff != 0)
+					throw new Exception("Lacking " + CalculatorContext.RightBracket);
 
-				calculator.PushNumber(innerContext.GetAnswer());
+				context.PushNumber(innerContext.GetAnswer());
 			}
 
-			protected override IState GetNext(char c)
+			private IState GetNext(char c)
 			{
-				if (breacketsDiff != 0) 
+				if (bracketsDiff != 0) 
 					return null;
 
-				if (c == '(' || c == ')')
+				if (c == CalculatorContext.LeftBracket || c == CalculatorContext.RightBracket)
 					throw new Exception("Unexpected " + c);
 
 				if (Char.IsDigit(c))
 					return new NumberState(c);
 
-				return new BinaryOperatorState(c);
+				return new OperatorState(c, 2);
 			}
 		}
 	}

@@ -41,15 +41,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IOperators.cs" />
     <Compile Include="MyOperators\BinaryOperator.cs" />
     <Compile Include="Calculator.cs" />
+<<<<<<< HEAD
     <Compile Include="MyOperators\DivisionOperator.cs" />
     <Compile Include="MyOperators\MinusOperator.cs" />
     <Compile Include="MyOperators\MinusUnaryOperator.cs" />
     <Compile Include="MyOperators\MultiplyOperator.cs" />
     <Compile Include="MyOperators\IOperator.cs" />
-    <Compile Include="PluginsOperators.cs" />
+=======
+    <Compile Include="IOperator.cs" />
+    <Compile Include="Operator.cs" />
+>>>>>>> AddPlugins
+    <Compile Include="Operators.cs" />
     <Compile Include="MyOperators\PlusOperator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -58,6 +62,7 @@
     <Compile Include="States\InnerExpressionState.cs" />
     <Compile Include="States\IState.cs" />
     <Compile Include="States\NumberState.cs" />
+    <Compile Include="States\ActiveState.cs" />
     <Compile Include="States\OperatorState.cs" />
     <Compile Include="MyOperators\UnaryOperator.cs" />
   </ItemGroup>
